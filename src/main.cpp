@@ -106,7 +106,7 @@ void inputAndDecodeBase64(DecodedCharHolder *store) {
 
 int reverseConvertToInt(const vector<char>& bytes) {
     int result = 0;
-    for (int i = bytes.size(); i >= 0; i--) {
+    for (int i = bytes.size() - 1; i >= 0; i--) {
         if (i != bytes.size())
             result <<= 8;
         result += bytes[i];
@@ -115,13 +115,10 @@ int reverseConvertToInt(const vector<char>& bytes) {
 }
 
 void readZipFile(DecodedCharHolder *store) {
-    cout << "mode 1";
     char pattern[4] = {80, 75, 5, 6};
     int index = store->findIndexOfPatternReverse(pattern, 4);
     int numberOfCd = reverseConvertToInt(store->getRange(index + 10, 2));
     int offsetToCd = reverseConvertToInt(store->getRange(index + 16, 4));
-
-    cout << numberOfCd << endl;
 
     vector<int> files;
     vector<int> dicts;
