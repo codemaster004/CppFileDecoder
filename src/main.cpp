@@ -35,7 +35,8 @@ int main() {
 
     DecodedCharHolder decodedBytes{};
 
-    inputAndDecodeBase64(&decodedBytes);
+    if (mode != 2)
+        inputAndDecodeBase64(&decodedBytes);
 
     if (mode == 0) {
         binaryBrowser(&decodedBytes);
@@ -43,6 +44,10 @@ int main() {
 //        binaryBrowser(&decodedBytes);
 //        cout << endl;
         readZipFile(&decodedBytes);
+    } else if (mode == 2) {
+
+    } else {
+        cout << mode << endl;
     }
 
     return 0;
