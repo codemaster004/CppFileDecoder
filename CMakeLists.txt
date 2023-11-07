@@ -7,4 +7,5 @@ add_executable(Base64FileDecoder src/main.cpp
         src/PrintingFunctions.h
         src/PrintingFunctions.cpp
         src/DecodedCharHolder.cpp
-        src/DecodedCharHolder.h)
+        src/DecodedCharHolder.h
+)

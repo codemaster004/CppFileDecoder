@@ -10,10 +10,10 @@ using namespace std;
 #define LINE_LENGTH 16
 
 const int baseSize = 64;
-const char base64table[baseSize] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-                              'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
-                              'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-                              '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
+const char base64table[baseSize] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
+                                    'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+                                    'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
+                                    'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 
 int indexOf(const char *searchTable, char searchElement, int maxElement);
@@ -24,8 +24,11 @@ void inputAndDecodeBase64(DecodedCharHolder *store);
 
 void binaryBrowser(DecodedCharHolder *store);
 
+vector<char> decodeBase64(const char base64String[]);
+
 void readZipFile(DecodedCharHolder *store);
 
+void handleTarFileDecoding();
 
 int main() {
     int mode;
@@ -41,16 +44,83 @@ int main() {
     if (mode == 0) {
         binaryBrowser(&decodedBytes);
     } else if (mode == 1) {
-//        binaryBrowser(&decodedBytes);
+        binaryBrowser(&decodedBytes);
 //        cout << endl;
         readZipFile(&decodedBytes);
     } else if (mode == 2) {
+//        binaryBrowser(&decodedBytes);
+        handleTarFileDecoding();
 
     } else {
         cout << mode << endl;
     }
 
     return 0;
+}
+
+vector<char> decodeBase64(const char base64String[]) {
+    int paddingCount = 0;
+    int encodedNumber = 0;
+    for (int i = 0; i < 4; ++i) {
+        char tempChar = base64String[i];
+        if (tempChar == '=') {
+            encodedNumber <<= 6;
+            paddingCount++;
+        } else {
+            encodedNumber <<= 6;
+            encodedNumber += indexOf(base64table, tempChar, baseSize);
+        }
+
+        if (i == 3) {
+            vector<char> decodedBytes = {0, 0, 0};
+            for (int j = 0; j < 3 - paddingCount; ++j) {
+                int mask = createBitMask(8, 8 * (2 - j));
+                int decodedNumber = (encodedNumber & mask) >> 8 * (2 - j);
+
+                decodedBytes[j] = (char) (decodedNumber);
+            }
+            return decodedBytes;
+        }
+    }
+    return {};
+}
+
+void handleTarFileDecoding() {
+    vector<char> base64Data;
+
+    int fileNameBytesLength = 100;
+    int fileSizeBytesLength = 12;
+
+    bool canContinueReading = true;
+    while (canContinueReading) {
+
+        int base64CharLimit = ((fileNameBytesLength - 1) / 3 + 1) * 4;
+        char fileName[fileNameBytesLength + 4];
+        int finalFileNameLength = 0;
+        int tempBase64Count = 0;
+        char tempBase64[4];
+        bool decodingComplete = false;
+        for (int i = 0; i < base64CharLimit; ++i) {
+            cin >> tempBase64[tempBase64Count++];
+            if (tempBase64Count == 4) {
+                tempBase64Count = 0;
+
+                if (decodingComplete) {
+                    continue;
+                }
+
+                for (char decodedChar: decodeBase64(tempBase64)) {
+                    if ((int) (decodedChar) != 0)
+                        fileName[finalFileNameLength++] = decodedChar;
+                    else
+                        decodingComplete = true;
+                }
+            }
+        }
+
+        canContinueReading = false;
+    }
+
 }
 
 void binaryBrowser(DecodedCharHolder *store) {
@@ -85,31 +155,12 @@ void inputAndDecodeBase64(DecodedCharHolder *store) {
     while (cin.get(tempChar) && tempChar != '\n') {
         enteredCharCountCheck++;
 
-        if (tempChar == '=') {
-            encodedNumber <<= 6;
-            paddingCount++;
-        } else {
-            encodedNumber <<= 6;
-            encodedNumber += indexOf(base64table, tempChar, baseSize);
-        }
-
-        if (enteredCharCountCheck == 4) {
-            enteredCharCountCheck = 0;
-
-            char decodedBytes[3];
-            for (int i = 0; i < 3 - paddingCount; ++i) {
-
-                int mask = createBitMask(8, 8 * (2 - i));
-                int decodedNumber = (encodedNumber & mask) >> 8 * (2 - i);
-
-                decodedBytes[i] = (char) (decodedNumber);
-            }
-            store->addElements(decodedBytes, 3 - paddingCount);
-        }
+        // TODO: Function should be used Here
+//        store->addElements(decodedBytes, 3 - paddingCount);
     }
 }
 
-int reverseConvertToInt(const vector<char>& bytes) {
+int reverseConvertToInt(const vector<char> &bytes) {
     int result = 0;
     for (int i = bytes.size() - 1; i >= 0; i--) {
         if (i != bytes.size())
@@ -134,11 +185,11 @@ void readZipFile(DecodedCharHolder *store) {
 
         vector<char> fileName = store->getRange(offsetToCd + 46, fileNameSize);
         if (fileName[fileNameSize - 1] != '/') {
-            for (char letter : fileName)
+            for (char letter: fileName)
                 files.push_back(letter);
             files.push_back(10);
         } else {
-            for (char letter : fileName)
+            for (char letter: fileName)
                 dicts.push_back(letter);
             dicts.push_back(10);
         }
@@ -146,9 +197,9 @@ void readZipFile(DecodedCharHolder *store) {
         offsetToCd += 46 + fileNameSize + extraFieldsSize + commentSize;
     }
 
-    for (int letter : files)
+    for (int letter: files)
         cout << (char) (letter);
-    for (int letter : dicts)
+    for (int letter: dicts)
         cout << (char) (letter);
 
 }
