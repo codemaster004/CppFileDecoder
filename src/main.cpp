@@ -72,12 +72,12 @@ vector<char> decodeBase64(const char base64String[]) {
         }
 
         if (i == 3) {
-            vector<char> decodedBytes = {0, 0, 0};
+            vector<char> decodedBytes;
             for (int j = 0; j < 3 - paddingCount; ++j) {
                 int mask = createBitMask(8, 8 * (2 - j));
                 int decodedNumber = (encodedNumber & mask) >> 8 * (2 - j);
 
-                decodedBytes[j] = (char) (decodedNumber);
+                decodedBytes.push_back((char) (decodedNumber));
             }
             return decodedBytes;
         }
@@ -152,11 +152,21 @@ void inputAndDecodeBase64(DecodedCharHolder *store) {
     int enteredCharCountCheck = 0, paddingCount = 0;
 
     char tempChar;
+    char tempBase64[4];
     while (cin.get(tempChar) && tempChar != '\n') {
-        enteredCharCountCheck++;
+        tempBase64[enteredCharCountCheck++] = tempChar;
+        if (enteredCharCountCheck == 4) {
+            enteredCharCountCheck = 0;
+            vector<char> decodedChars = decodeBase64(tempBase64);
 
-        // TODO: Function should be used Here
-//        store->addElements(decodedBytes, 3 - paddingCount);
+            char decodedBytes[3];
+            for (char temp: decodedChars) {
+                decodedBytes[enteredCharCountCheck++] = temp;
+            }
+            enteredCharCountCheck = 0;
+
+            store->addElements(decodedBytes, (int) (decodedChars.size()));
+        }
     }
 }
 
