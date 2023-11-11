@@ -44,7 +44,7 @@ int main() {
     if (mode == 0) {
         binaryBrowser(&decodedBytes);
     } else if (mode == 1) {
-        binaryBrowser(&decodedBytes);
+//        binaryBrowser(&decodedBytes);
 //        cout << endl;
         readZipFile(&decodedBytes);
     } else if (mode == 2) {

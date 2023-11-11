@@ -38,12 +38,11 @@ void TarFileHeader::clear() {
 }
 
 unsigned long long int TarFileHeader::getFileSize() {
-    // TODO: it is octal based do something.
     unsigned int size = 0;
     for (char charDigit: fileSize) {
-        if (charDigit > 48 && charDigit < 58) {
-            size *= 10;
-            size += (unsigned short) (charDigit);
+        if (charDigit >= 48 && charDigit < 58) {
+            size *= 8;
+            size += (unsigned short) (charDigit) - 48;
         }
     }
     return size;
