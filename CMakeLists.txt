@@ -8,4 +8,6 @@ add_executable(Base64FileDecoder src/main.cpp
         src/PrintingFunctions.cpp
         src/DecodedCharHolder.cpp
         src/DecodedCharHolder.h
+        src/tarFileHeader.cpp
+        src/tarFileHeader.h
 )
