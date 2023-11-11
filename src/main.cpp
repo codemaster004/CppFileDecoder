@@ -86,12 +86,22 @@ vector<char> decodeBase64(const char base64String[]) {
 }
 
 void handleTarFileDecoding() {
-    vector<char> base64Data;
     TarFileHeader fileHeader{};
-
+    fileHeader.clear();
 
     int tempBase64Count = 0;
     char tempBase64[4];
+
+    vector<char> files;
+    for (char letter: "Files: \n")
+        files.push_back(letter);
+    files.pop_back();
+
+    vector<char> dirs;
+    for (char letter: "Directories: \n")
+        dirs.push_back(letter);
+    dirs.pop_back();
+
 
     int decodedHeaderBytesCount = 0;
     unsigned long long int bytesToIgnore = 0;
@@ -108,17 +118,42 @@ void handleTarFileDecoding() {
                     bytesToIgnore--;
                     continue;
                 }
-
                 if (decodedHeaderBytesCount == 0 && decodedChar == 0) {
+                    for (int letter: files)
+                        cout << (char) (letter);
+                    for (int letter: dirs)
+                        cout << (char) (letter);
                     return;
                 }
 
                 fileHeader.appendByte(decodedChar);
                 decodedHeaderBytesCount++;
                 if (decodedHeaderBytesCount == 512) {
-                    cout << fileHeader.getFileName() << endl;
+                    char *tempName = fileHeader.getFileName();
+                    int fileNameLength = 0;
+                    for (int i = 0; i < 100; ++i) {
+                        if (tempName[i] != '\0')
+                            fileNameLength++;
+                        else
+                            break;
+                    }
+                    if (tempName[fileNameLength - 1] != '/') {
+                        for (int i = 0; i < fileNameLength; ++i) {
+                            files.push_back(tempName[i]);
+                        }
+                        files.push_back(10);
+                    } else {
+                        for (int i = 0; i < fileNameLength; ++i) {
+                            dirs.push_back(tempName[i]);
+                        }
+                        dirs.push_back(10);
+                    }
+
+
                     bytesToIgnore = fileHeader.getFileSize();
                     bytesToIgnore = bytesToIgnore % 512 ? bytesToIgnore + (512 - bytesToIgnore % 512) : bytesToIgnore;
+
+                    // Clean up
                     fileHeader.clear();
                     decodedHeaderBytesCount = 0;
                 }
