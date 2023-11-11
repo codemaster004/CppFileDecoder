@@ -2,15 +2,15 @@
 // Created by Filip Dabkowski on 09/11/2023.
 //
 
-#include "tarFileHeader.h"
+#include "TarFileHeader.h"
 
-void tarFileHeader::appendBytes(const char bytes[], int count) {
+void TarFileHeader::appendBytes(const char bytes[], int count) {
     for (int i = 0; i < count; ++i) {
         this->appendByte(bytes[i]);
     }
 }
 
-void tarFileHeader::appendByte(char byte) {
+void TarFileHeader::appendByte(char byte) {
     if (this->importedBytesCount < 100) {
         this->fileName[this->importedBytesCount] = byte;
     } else if (this->importedBytesCount < 108) {

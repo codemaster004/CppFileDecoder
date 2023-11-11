@@ -1,4 +1,4 @@
-class tarFileHeader {
+class TarFileHeader {
 private:
     char fileName[100];
     char fileMode[8];
