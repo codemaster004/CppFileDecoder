@@ -11,6 +11,8 @@ private:
 
 public:
     void appendBytes(const char bytes[], int count);
+
+    void appendByte(char byte);
 };
 
 
