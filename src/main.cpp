@@ -1,9 +1,9 @@
 #include "iostream"
 #include "vector"
-#include "string"
 
 #include "PrintingFunctions.h"
 #include "DecodedCharHolder.h"
+#include "TarFileHeader.h"
 
 using namespace std;
 
@@ -87,38 +87,44 @@ vector<char> decodeBase64(const char base64String[]) {
 
 void handleTarFileDecoding() {
     vector<char> base64Data;
+    TarFileHeader fileHeader{};
 
-    int fileNameBytesLength = 100;
-    int fileSizeBytesLength = 12;
 
-    bool canContinueReading = true;
-    while (canContinueReading) {
+    int tempBase64Count = 0;
+    char tempBase64[4];
 
-        int base64CharLimit = ((fileNameBytesLength - 1) / 3 + 1) * 4;
-        char fileName[fileNameBytesLength + 4];
-        int finalFileNameLength = 0;
-        int tempBase64Count = 0;
-        char tempBase64[4];
-        bool decodingComplete = false;
-        for (int i = 0; i < base64CharLimit; ++i) {
-            cin >> tempBase64[tempBase64Count++];
-            if (tempBase64Count == 4) {
-                tempBase64Count = 0;
+    int decodedHeaderBytesCount = 0;
+    unsigned long long int bytesToIgnore = 0;
+    char tempChar = '\0';
+    while (tempChar != '\n') {
+        cin >> tempChar;
+        tempBase64[tempBase64Count++] = tempChar;
 
-                if (decodingComplete) {
+        if (tempBase64Count == 4) {
+            tempBase64Count = 0;
+
+            for (char decodedChar: decodeBase64(tempBase64)) {
+                if (bytesToIgnore > 0) {
+                    bytesToIgnore--;
                     continue;
                 }
 
-                for (char decodedChar: decodeBase64(tempBase64)) {
-                    if ((int) (decodedChar) != 0)
-                        fileName[finalFileNameLength++] = decodedChar;
-                    else
-                        decodingComplete = true;
+                if (decodedHeaderBytesCount == 0 && decodedChar == 0) {
+                    return;
+                }
+
+                fileHeader.appendByte(decodedChar);
+                decodedHeaderBytesCount++;
+                if (decodedHeaderBytesCount == 512) {
+                    cout << fileHeader.getFileName() << endl;
+                    bytesToIgnore = fileHeader.getFileSize();
+                    bytesToIgnore = bytesToIgnore % 512 ? bytesToIgnore + (512 - bytesToIgnore % 512) : bytesToIgnore;
+                    fileHeader.clear();
+                    decodedHeaderBytesCount = 0;
                 }
             }
         }
 
-        canContinueReading = false;
     }
 
 }
