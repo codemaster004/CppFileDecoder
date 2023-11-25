@@ -10,4 +10,8 @@ add_executable(Base64FileDecoder src/main.cpp
         src/DecodedCharHolder.h
         src/TarFileHeader.cpp
         src/TarFileHeader.h
+        src/LZ4.cpp
+        src/LZ4.h
+        src/LZ4.cpp
+        src/LZ4.h
 )
