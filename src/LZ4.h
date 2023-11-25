@@ -5,12 +5,15 @@
 #ifndef BASE64FILEDECODER_LZ4_H
 #define BASE64FILEDECODER_LZ4_H
 
+#include "DecodedCharHolder.h"
+
 #define MAGIC_N_SIZE 4
 #define FLG_SIZE 1
 #define BD_SIZE 1
 #define HC_SIZE 1
 #define CON_SIZE_LEN 8
 #define DICT_ID_LEN 4
+#define BLOCK_SIZE_HEADER 4
 
 class LZ4 {
 private:
@@ -21,11 +24,25 @@ private:
 	bool useDictId = false;
 	char dictID[DICT_ID_LEN]{};
 	bool fileHeaderSet = false;
+	bool fileEnded = false;
+
+	short blockSizeCount = 0;
+	int blockSize = 0;
 
 	void handleFileHeader(char byte);
 
+	void handleDataBlock(char byte);
+
+	void decodeBlockSize();
+
+	static int createBitMask();
+
 public:
+	DecodedCharHolder output{};
+
 	void appendBytes(char byte);
+
+	bool endOfFile() const;
 };
 
 

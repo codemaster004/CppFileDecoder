@@ -2,8 +2,8 @@
 #include "vector"
 
 #include "PrintingFunctions.h"
-#include "DecodedCharHolder.h"
 #include "TarFileHeader.h"
+#include "LZ4.h"
 
 using namespace std;
 
@@ -30,6 +30,8 @@ void readZipFile(DecodedCharHolder *store);
 
 void handleTarFileDecoding();
 
+void handleLz4Decoding();
+
 int main() {
 	int mode;
 	cin >> mode;
@@ -38,7 +40,7 @@ int main() {
 
 	DecodedCharHolder decodedBytes{};
 
-	if (mode != 2)
+	if (mode < 2)
 		inputAndDecodeBase64(&decodedBytes);
 
 	if (mode == 0) {
@@ -51,6 +53,8 @@ int main() {
 //        binaryBrowser(&decodedBytes);
 		handleTarFileDecoding();
 
+	} else if (mode == 3) {
+		handleLz4Decoding();
 	} else {
 		cout << mode << endl;
 	}
@@ -83,6 +87,32 @@ vector<char> decodeBase64(const char base64String[]) {
 		}
 	}
 	return {};
+}
+
+void handleLz4Decoding() {
+	LZ4 compressedFile{};
+
+	int tempBase64Count = 0;
+	char tempBase64[4];
+
+	char tempChar = '\0';
+	while (tempChar != '\n') {
+		tempChar = getchar();
+		tempBase64[tempBase64Count++] = tempChar;
+
+		if (tempBase64Count == 4) {
+			tempBase64Count = 0;
+
+			for (char decodedChar: decodeBase64(tempBase64)) {
+				compressedFile.appendBytes(decodedChar);
+			}
+		}
+
+		if (compressedFile.endOfFile()) {
+			binaryBrowser(&compressedFile.output);
+			return;
+		}
+	}
 }
 
 void handleTarFileDecoding() {

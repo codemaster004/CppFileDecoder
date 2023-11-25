@@ -61,9 +61,9 @@ _In my case B.Checksum = 0 so it is NOT present_
 0000 1011  0000 0000  0000 0000  1000 0000
 ```
 
-The highest bit being `0` means block is uncompressed cna be read normally
+The highest bit being `1` means block is uncompressed cna be read normally
 
-If it was set to `1` this would mean the block is LZ4-compressed
+If it was set to `0` this would mean the block is LZ4-compressed
 
 _Remember the documentation is in Big Endian meaning for normal machines "highest" means last (third) byte fist bit!_
 
