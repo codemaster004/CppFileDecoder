@@ -68,3 +68,7 @@ If it was set to `0` this would mean the block is LZ4-compressed
 _Remember the documentation is in Big Endian meaning for normal machines "highest" means last (third) byte fist bit!_
 
 ExampleBlock size `0b 00 00 80` without flag bit translates to `11` Bytes
+
+---
+
+_Source: [LZ4 Github Docs](https://github.com/lz4/lz4/blob/dev/doc/lz4_Frame_format.md)_
