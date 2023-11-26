@@ -91,6 +91,7 @@ vector<char> decodeBase64(const char base64String[]) {
 
 void handleLz4Decoding() {
 	LZ4 compressedFile{};
+//	compressedFile.output.
 
 	int tempBase64Count = 0;
 	char tempBase64[4];

@@ -26,6 +26,17 @@ private:
 	bool fileHeaderSet = false;
 	bool fileEnded = false;
 
+	bool dataBlockCompressed = false;
+	enum CompressedSequenceState {
+		TOKEN, LITERALS, OFFSET, EXTENDED_LITERAL_LEN, EXTENDED_MATCH_LEN
+	};
+	CompressedSequenceState seqState = TOKEN;
+	unsigned long literalBytes = 0;
+	unsigned long matchLength = 0;
+	unsigned short offset = 0;
+	short offsetCount = 0;
+	bool readyToDecompressSeq = false;
+
 	short blockSizeCount = 0;
 	int blockSize = 0;
 
@@ -35,10 +46,12 @@ private:
 
 	void decodeBlockSize();
 
-	static int createBitMask();
+	static int createBitMask(int numberOfUpBits, int rightOffset);
+
+	void decompressDataBlock(unsigned char byte);
 
 public:
-	DecodedCharHolder output{};
+	DecodedCharHolder output;
 
 	void appendBytes(char byte);
 

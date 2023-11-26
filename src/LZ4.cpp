@@ -46,8 +46,11 @@ void LZ4::handleDataBlock(char byte) {
 			}
 		}
 	} else if (blockSize--) {
-//		std::cout << byte;
-		output.addElement(byte);
+		if (!dataBlockCompressed) {
+			output.addElement(byte);
+		} else {
+			decompressDataBlock(byte);
+		}
 		if (!blockSize) {
 			blockSizeCount = 0;
 		}
@@ -56,17 +59,76 @@ void LZ4::handleDataBlock(char byte) {
 
 void LZ4::decodeBlockSize() {
 	if (blockSize <= 0) {
-		int mask = createBitMask();
+		int mask = createBitMask(1, 4 * 8 - 1);
 		blockSize &= ~mask;
 	} else {
-		std::cout << "Huston we have a problem" << std::endl;
+		dataBlockCompressed = true;
 	}
 }
 
-int LZ4::createBitMask() {
-	return ((1 << 1) - 1) << 31;
+int LZ4::createBitMask(int numberOfUpBits, int rightOffset) {
+	return ((1 << numberOfUpBits) - 1) << rightOffset;
 }
 
 bool LZ4::endOfFile() const {
 	return fileEnded;
+}
+
+void LZ4::decompressDataBlock(unsigned char byte) {
+	int mask;
+	switch (seqState) {
+		case TOKEN:
+			mask = createBitMask(4, 4);
+			literalBytes = (byte & mask) >> 4;
+			mask = createBitMask(4, 0);
+			matchLength = 4 + (byte & mask);
+			if (literalBytes == 15) {
+				seqState = EXTENDED_LITERAL_LEN;
+			} else {
+				seqState = LITERALS;
+				if (!literalBytes) {
+					seqState = OFFSET;
+				}
+			}
+			break;
+		case LITERALS:
+			output.addElement((char) (byte));
+			if (!--literalBytes) {
+				seqState = OFFSET;
+			}
+			break;
+		case OFFSET:
+			offset += (unsigned short) (byte) << (offsetCount++ * 8);
+			if (offsetCount >= 2) {
+				seqState = matchLength == 19 ? EXTENDED_MATCH_LEN : TOKEN;
+				if (matchLength != 19) {
+					readyToDecompressSeq = true;
+				}
+				offsetCount = 0;
+			}
+			break;
+		case EXTENDED_LITERAL_LEN:
+			literalBytes += byte;
+			if (byte < 255) {
+				seqState = LITERALS;
+			}
+			break;
+		case EXTENDED_MATCH_LEN:
+			matchLength += byte;
+			if (byte < 255) {
+				readyToDecompressSeq = true;
+				seqState = TOKEN;
+			}
+			break;
+	}
+	if (readyToDecompressSeq) {
+		unsigned long len = output.size();
+		vector<char> decodedBytes = output.getRange((int) (len - offset), (int) (offset));
+		for (int i = 0; i < matchLength; ++i) {
+			output.addElement(decodedBytes[i % offset]);
+		}
+		readyToDecompressSeq = false;
+		matchLength = 0;
+		offset = 0;
+	}
 }
