@@ -69,6 +69,55 @@ _Remember the documentation is in Big Endian meaning for normal machines "highes
 
 ExampleBlock size `0b 00 00 80` without flag bit translates to `11` Bytes
 
+# Compressed block format
+
+---
+Each sequence starts with a `token`. The `token` is a one byte value, separated into two 4-bits fields.
+
+```
+0x27 = 0010 0111
+```
+
+The first field uses the 4 high-bits of the token. It provides the length of literals to follow.
+
+> _This time value being `0010`= 2. So the sequence contain 2 output bytes_
+
+If the value is less that 15 this represents **number of output bytes** in the sequence.
+
+The value 15 is a special case: more bytes are required to indicate the full length. Each additional byte then
+represents a value from 0 to 255, which is added to the previous value to produce a total length.
+
+Following `token` and optional length bytes, are the literals themselves.
+
+```
+0x30 0x31 = 0 1
+```
+
+Following the literals is the match copy operation.
+
+It starts by the `offset` value. This is a 2 bytes value, in little endian
+
+The `offset` represents the position of the match to be copied from the past. For example, 1 means "current position - 1
+byte".
+
+```
+0x0200 = 2
+```
+
+Then the `matchlength` can be extracted. For this, we use the second token field,
+the low 4-bits. Here, 0 means that the copy operation is minimal.
+
+The minimum length of a match, called `minmatch`, is 4. As a consequence, a 0 value means 4 bytes.
+Similarly to literal length, any value smaller than 15 represents a length,
+to which 4 (`minmatch`) must be added, thus ranging from 4 to 18.
+
+Value of 15 means there are more bytes to be added to current count.
+
+> _This time we have a value 0111 = 7. The full repetition count will be: 7 + minmatch = 11_
+
+Decoding the `matchlength` reaches the end of current sequence.
+Next byte will be the start of another sequence, and therefore a new `token`.
+
 ---
 
-_Source: [LZ4 Github Docs](https://github.com/lz4/lz4/blob/dev/doc/lz4_Frame_format.md)_
+_Source: [LZ4 GitHub Docs](https://github.com/lz4/lz4/blob/dev/doc/lz4_Frame_format.md)_
