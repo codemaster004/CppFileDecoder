@@ -6,6 +6,7 @@
 #define BASE64FILEDECODER_LZ4_H
 
 #include "DecodedCharHolder.h"
+#include "ByteContainer.h"
 
 #define MAGIC_N_SIZE 4
 #define FLG_SIZE 1
@@ -51,11 +52,16 @@ private:
 	void decompressDataBlock(unsigned char byte);
 
 public:
-	DecodedCharHolder output;
+	explicit LZ4(size_t N, size_t secondDimSize)
+		: output(N, secondDimSize) {
+		// Other initialization code (if any)
+	}
 
 	void appendBytes(char byte);
 
 	bool endOfFile() const;
+
+	ByteContainer output;
 };
 
 

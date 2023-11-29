@@ -14,4 +14,6 @@ add_executable(Base64FileDecoder src/main.cpp
         src/LZ4.h
         src/LZ4.cpp
         src/LZ4.h
+        src/ByteContainer.cpp
+        src/ByteContainer.h
 )

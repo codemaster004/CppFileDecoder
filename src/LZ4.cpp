@@ -123,9 +123,12 @@ void LZ4::decompressDataBlock(unsigned char byte) {
 	}
 	if (readyToDecompressSeq) {
 		unsigned long len = output.size();
-		vector<char> decodedBytes = output.getRange((int) (len - offset), (int) (offset));
+		auto startIndex = (int) (len - offset);
+		if (len >= 32) {
+			len += 0;
+		}
 		for (int i = 0; i < matchLength; ++i) {
-			output.addElement(decodedBytes[i % offset]);
+			output.addElement(output.getByte(startIndex + i % offset));
 		}
 		readyToDecompressSeq = false;
 		matchLength = 0;

@@ -24,6 +24,8 @@ void inputAndDecodeBase64(DecodedCharHolder *store);
 
 void binaryBrowser(DecodedCharHolder *store);
 
+void binaryBrowser(ByteContainer *store);
+
 vector<char> decodeBase64(const char base64String[]);
 
 void readZipFile(DecodedCharHolder *store);
@@ -90,7 +92,7 @@ vector<char> decodeBase64(const char base64String[]) {
 }
 
 void handleLz4Decoding() {
-	LZ4 compressedFile{};
+	LZ4 compressedFile(1, 128);
 //	compressedFile.output.
 
 	int tempBase64Count = 0;
@@ -212,6 +214,30 @@ void binaryBrowser(DecodedCharHolder *store) {
 		int bytes[LINE_LENGTH];
 		for (int j = 0; j < size % LINE_LENGTH; ++j) {
 			bytes[j] = (unsigned char) (decodedBytes[j]);
+		}
+		printOutputStructure((int) (size / LINE_LENGTH * LINE_LENGTH), bytes, (int) (size % LINE_LENGTH));
+	}
+
+	printInHex((int) (size), 8);
+}
+
+void binaryBrowser(ByteContainer *store) {
+	unsigned long size = store->size();
+
+	for (int i = 0; i < size / LINE_LENGTH; ++i) {
+//		vector<char> decodedBytes = store->getRange(LINE_LENGTH * i, LINE_LENGTH * (i + 1));
+		int bytes[LINE_LENGTH];
+		for (int j = 0; j < LINE_LENGTH; ++j) {
+			bytes[j] = (unsigned char) (store->getByte(LINE_LENGTH * i + j));
+		}
+		printOutputStructure(i * LINE_LENGTH, bytes, LINE_LENGTH);
+	}
+
+	if (size % LINE_LENGTH != 0) {
+//		vector<char> decodedBytes = store->getRange(LINE_LENGTH * (size / LINE_LENGTH), (int) (size % LINE_LENGTH));
+		int bytes[LINE_LENGTH];
+		for (int j = 0; j < size % LINE_LENGTH; ++j) {
+			bytes[j] = (unsigned char) (store->getByte(LINE_LENGTH * (size / LINE_LENGTH) + j));
 		}
 		printOutputStructure((int) (size / LINE_LENGTH * LINE_LENGTH), bytes, (int) (size % LINE_LENGTH));
 	}
